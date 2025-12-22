@@ -1,0 +1,19 @@
+# 1. Environment Variables
+.env
+backend/.env
+frontend/.env
+**/.env.local
+
+# 2. Python (Backend)
+backend/venv/
+backend/__pycache__/
+*.pyc
+
+# 3. Node/Next.js (Frontend)
+node_modules/
+frontend/.next/
+frontend/out/
+
+# 4. Supabase / Docker
+supabase/.temp/
+.DS_Store
