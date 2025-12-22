@@ -1,10 +1,19 @@
 from fastapi import FastAPI
+from routes import router as document_router
 
-app = FastAPI()
+app = FastAPI(title="Axiom RAG API")
+
+# Register routers
+# The prefix "/api" ensures all document endpoints are accessible under http://domain/api/documents
+app.include_router(document_router, prefix="/api")
 
 @app.get("/")
 def read_root():
-    return {"message": "Hello World from Axiom Backend"}
+    """
+    Health check endpoint.
+    Verifies that the API server is running and accessible.
+    """
+    return {"status": "online", "service": "Axiom Backend"}
 
 if __name__ == "__main__":
     import uvicorn
