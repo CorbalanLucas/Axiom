@@ -1,14 +1,18 @@
 from fastapi import APIRouter, HTTPException
 from database import supabase
 from models import DocumentResponse, DocumentCreate
+from services.embedding import generate_embedding
 
 router = APIRouter()
 
 @router.get("/documents", response_model=list[DocumentResponse])
 def get_documents():
     """
-    Retrieves all documents from the database.
-    Selects only metadata and content fields, excluding heavy vector embeddings.
+    Retrieves a list of all documents stored in the database.
+
+    Returns:
+        list[DocumentResponse]: A list of documents containing id, content, and metadata.
+                                Embedding vectors are excluded from the response for performance.
     """
     try:
         response = supabase.table("documents").select("id, content, metadata").execute()
@@ -19,14 +23,24 @@ def get_documents():
 @router.post("/documents", response_model=DocumentResponse)
 def create_document(doc: DocumentCreate):
     """
-    Creates a new document record.
-    Currently inserts a placeholder zero-vector for the embedding field.
+    Creates a new document entry in the database.
+    
+    Processes the input text to generate a vector embedding before storage.
+
+    Args:
+        doc (DocumentCreate): The document payload containing content and metadata.
+
+    Returns:
+        DocumentResponse: The created document record (id, content, metadata).
     """
     try:
+        # Generate 384-dimensional vector for the content
+        vector = generate_embedding(doc.content)
+
         row_data = {
             "content": doc.content,
             "metadata": doc.metadata,
-            "embedding": [0.0] * 384 
+            "embedding": vector
         }
 
         response = supabase.table("documents").insert(row_data).execute()
@@ -34,7 +48,7 @@ def create_document(doc: DocumentCreate):
         if response.data:
             return response.data[0]
         else:
-            raise HTTPException(status_code=500, detail="Failed to insert document")
+            raise HTTPException(status_code=500, detail="Database insertion returned no data")
             
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
