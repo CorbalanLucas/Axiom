@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from database import supabase
-from models import DocumentResponse, DocumentCreate
+from models import DocumentResponse, DocumentCreate, SearchQuery, DocumentSearchResponse
 from services.embedding import generate_embedding
 from services.pdf import extract_text_from_pdf
 
@@ -106,3 +106,34 @@ async def upload_document(file: UploadFile = File(...)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Processing error: {str(e)}")
+    
+@router.post("/search", response_model=list[DocumentSearchResponse])
+def search_documents(search_payload: SearchQuery):
+    """
+    Performs a semantic search against the document database.
+
+    1. Generates a vector embedding for the input query string.
+    2. Executes the 'match_documents' RPC on Supabase to find nearest neighbors.
+    3. Returns documents ranked by cosine similarity.
+
+    Args:
+        search_payload (SearchQuery): Contains the query text and desired number of results (top_k).
+
+    Returns:
+        list[DocumentSearchResponse]: List of documents with their content, metadata, and similarity score.
+    """
+    try:
+        query_vector = generate_embedding(search_payload.query)
+
+        # Call the PostgreSQL RPC function 'match_documents'
+        # Parameters must match the function signature defined in SQL
+        response = supabase.rpc("match_documents", {
+            "query_embedding": query_vector,
+            "match_threshold": 0.0, # Filter out low-relevance matches
+            "match_count": search_payload.top_k
+        }).execute()
+
+        return response.data
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

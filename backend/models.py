@@ -22,3 +22,17 @@ class DocumentResponse(BaseModel):
     class Config:
         # Allows Pydantic to read data from ORM objects or database dictionaries
         from_attributes = True
+
+class SearchQuery(BaseModel):
+    """
+    Schema for incoming semantic search requests.
+    """
+    query: str
+    top_k: int = 5
+
+class DocumentSearchResponse(DocumentResponse):
+    """
+    Schema for search results. Extends the standard document response 
+    to include the similarity score calculated by the vector database.
+    """
+    similarity: float
