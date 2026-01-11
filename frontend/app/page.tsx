@@ -13,7 +13,7 @@ import { searchDocuments } from "@/lib/api";
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Reference to the bottom of the list for auto-scrolling
   const messagesEndRef = useRef<HTMLDivElement>(null);
   // Ref to track if the user requested to stop generation
@@ -26,9 +26,6 @@ export default function Home() {
   const simulateStreamingResponse = async (fullText: string) => {
     const messageId = Date.now().toString();
 
-    // Reset abort state at start of new message
-    abortControllerRef.current = false;
-    
     setMessages((prev) => [
       ...prev,
       { id: messageId, role: "assistant", content: "" },
@@ -50,7 +47,7 @@ export default function Home() {
       // Typing speed (5ms)
       await new Promise((resolve) => setTimeout(resolve, 5));
     }
-    
+
     setIsLoading(false);
   };
 
@@ -60,6 +57,9 @@ export default function Home() {
   };
 
   const handleSendMessage = async (content: string) => {
+    // Reset abort state for the new interaction
+    abortControllerRef.current = false;
+
     const userMsg: Message = {
       id: Date.now().toString(),
       role: "user",
@@ -70,7 +70,7 @@ export default function Home() {
 
     try {
       const results = await searchDocuments(content);
-      
+
       if (abortControllerRef.current) {
         setIsLoading(false);
         return;
@@ -96,7 +96,7 @@ export default function Home() {
   return (
     // ROOT CONTAINER
     <div className="flex h-screen w-full overflow-hidden bg-background">
-      
+
       {/* SIDEBAR: Fixed width, does not shrink */}
       <div className="w-64 hidden md:block shrink-0 h-full border-r border-border">
         <Sidebar />
@@ -107,7 +107,7 @@ export default function Home() {
         {/* MESSAGE FEED: Scrollable area */}
         <div className="flex-1 overflow-y-auto p-4 scroll-smooth">
           <div className="max-w-3xl mx-auto flex flex-col gap-6 pb-4">
-            
+
             {/* Empty State */}
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center min-h-[50vh] text-center space-y-4 opacity-50 mt-20">
@@ -125,11 +125,11 @@ export default function Home() {
 
             {/* Loading Indicator */}
             {isLoading && (
-               <div className="flex items-center gap-2 text-muted-foreground text-sm pl-4 animate-pulse">
-                  Thinking...
-               </div>
+              <div className="flex items-center gap-2 text-muted-foreground text-sm pl-4 animate-pulse">
+                Thinking...
+              </div>
             )}
-            
+
             {/* Invisible anchor for auto-scroll */}
             <div ref={messagesEndRef} className="h-1" />
           </div>

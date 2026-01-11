@@ -28,3 +28,35 @@ def extract_text_from_pdf(file_content: bytes) -> str:
             full_text.append(text)
             
     return "\n".join(full_text)
+
+def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 200) -> list[str]:
+    """
+    Splits a large string into smaller chunks with a specified overlap.
+    
+    Args:
+        text (str): The input text to be chunked.
+        chunk_size (int): Maximum number of characters per chunk.
+        overlap (int): Number of overlapping characters between adjacent chunks.
+        
+    Returns:
+        list[str]: A list of text chunks.
+    """
+    if not text:
+        return []
+        
+    chunks = []
+    start = 0
+    
+    while start < len(text):
+        end = start + chunk_size
+        chunk = text[start:end]
+        chunks.append(chunk)
+        
+        # Move the start pointer forward, accounting for overlap
+        start += (chunk_size - overlap)
+        
+        # Safeguard against infinite loops if overlap >= chunk_size
+        if chunk_size <= overlap:
+            break
+            
+    return chunks

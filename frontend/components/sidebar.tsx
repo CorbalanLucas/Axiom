@@ -63,20 +63,20 @@ export function Sidebar() {
                 Indexed Files
             </h3>
             <div className="space-y-1">
-                {documents.length === 0 ? (
+                {Array.from(new Set(documents.map(d => d.metadata.filename))).length === 0 ? (
                 <p className="px-2 text-sm text-muted-foreground italic">
                     No files indexed yet.
                 </p>
                 ) : (
-                documents.map((doc) => (
+                Array.from(new Set(documents.map(d => d.metadata.filename))).map((filename, idx) => (
                     <div
-                    key={doc.id}
+                    key={filename || idx}
                     className="flex items-center justify-between px-2 py-1.5 text-sm group hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md transition-colors"
                     >
                     <div className="flex items-center gap-2 overflow-hidden">
                         <FileText className="h-4 w-4 shrink-0 opacity-70" />
                         <span className="truncate max-w-[140px]">
-                        {doc.metadata.filename || `Doc ${doc.id}`}
+                        {filename || "Untitled Document"}
                         </span>
                     </div>
                     </div>
